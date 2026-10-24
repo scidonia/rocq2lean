@@ -13,3 +13,7 @@ result-*
 *.vok
 *.glob
 .*.aux
+
+# Rocq tactic caches written to the working directory
+.lia.cache
+.nra.cache
