@@ -1,0 +1,15 @@
+(library
+ (name rocq2lean_extractor)
+ (wrapped false)
+ (libraries
+  rocq-runtime.clib
+  rocq-runtime.kernel
+  rocq-runtime.library
+  rocq-runtime.engine
+  rocq-runtime.parsing
+  rocq-runtime.pretyping
+  rocq-runtime.proofs
+  rocq-runtime.stm
+  rocq-runtime.vernac
+  rocq-runtime.toplevel
+  rocq-runtime.plugins.ltac))

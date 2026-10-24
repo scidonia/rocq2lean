@@ -1,0 +1,15 @@
+.lake/
+build/
+extractor/_build/
+*.olean
+*.ilean
+.direnv
+result
+result-*
+
+# Rocq compilation artifacts
+*.vo
+*.vos
+*.vok
+*.glob
+.*.aux
