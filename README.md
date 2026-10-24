@@ -205,11 +205,19 @@ Two rules keep the assumption usable:
    Rocq, so `Corelib.Init.Nat.add` maps to `Rocq2Lean.add`, a Rocq-shaped
    definition; mapping it to `Nat.add` would carry proof terms across a
    definition they do not match.
+3. A Rocq global whose name is in a table is **not emitted**, even when the
+   file being joined declares it. The mapping decides which side of the
+   boundary the name denotes; emitting the stdlib definition as well would put
+   two incompatible constants under one generated name. This is what keeps
+   `Stdlib.Arith.PeanoNat.Nat.min` and the prelude's `Nat.min` the same
+   constant when both appear in a closure.
 
 Mapped today: the `Init` logic (`eq`, `and`, `or`, `ex`, `True`, `False`, their
 eliminators, `f_equal`), `nat`, `bool`, `unit`, `prod`, `sum`, `list`, `option`,
-and `add`/`mul`. Extend the table and the prelude together, then add a test
-that elaborates the result.
+and `add`/`mul`. `iff` is mapped to `Rocq2Lean.iff`, a Rocq-shaped definition
+(`(A → B) ∧ (B → A)`), not to Lean's `Iff` structure: Coq proof terms build an
+`iff` with `conj` and project it with `proj1`/`proj2`. Extend the table and the
+prelude together, then add a test that elaborates the result.
 
 ## Assumptions and limits
 
@@ -258,6 +266,45 @@ tests/run.sh        extract, translate, elaborate, check markers and axioms
   must not depend on `sorryAx` or on any axiom;
 * cases that must be partially untranslated are asserted to carry a marker, and
   fully translatable cases are asserted to carry none.
+
+## What carries: the mini project
+
+`examples/mini` is four ordinary files: an expression syntax and evaluator, a
+substitution function with a theorem about it, bounded arithmetic with a
+module, and an indexed vector. `tests/mini.sh` reproduces the numbers below
+(it reads the stdlib JSONs from `tests/compcert-a1.sh`, so run that once first).
+
+**Definitions and statements carry.** 37 declarations join with the stdlib
+compatibility JSONs, 0 unresolved references, 0 Lean errors; the 12 theorem
+statements are assumed. Inductives, records, modules, functors, `Fixpoint`s,
+`if`/`match` definitions, and theorem statements all elaborate.
+
+**Proof terms are translated, and some do not typecheck.** The same files with
+Rocq's proof terms produce 60 declarations (the mini project plus the stdlib
+declarations in its closure), 29 unresolved references, 8 markers (five stdlib
+lemmas whose bodies were dropped and three SProp `_sind` eliminators), and 10
+Lean errors in five declarations. Four of the nine mini theorems elaborate:
+
+| Theorem | Result | Cause when it fails |
+|---|---|---|
+| `Syntax.sample_eval` | ok | |
+| `Vec.vto_list_length` | ok | |
+| `Bounded.Clamp3.clamp_le` | ok | |
+| `Bounded.Clamp3.clamp_idem` | ok | |
+| `Syntax.eval_optimize` | error | dependent `destruct … eqn:`: the `Case` motive mentions the equation |
+| `Subst.teval_tsubst` | error | dependent `destruct … eqn:` over `Nat.eqb`; the branch's equation is not transported into the goal |
+| `Vec.vcons_inj` | error | `inversion` on an indexed inductive: the motive mentions the index |
+| `Bounded.add_bound` | error | `lia`: proof term pulls `micromega`/`Zify`/`Znat`, unresolved |
+| `Bounded.size_bound` | error | `lia`, as above |
+
+The failures are loud: every one is a Lean error at a named declaration, no
+`sorry` is emitted for them, and the generated file marks the stdlib bodies it
+had to assume. They are not a proof-script problem — the scripts ran in Rocq;
+what does not carry is the *term* shape those scripts produced (dependent
+elimination that carries an equation or an index, and `lia`'s decision
+procedure). Those are the two boundaries to work on next; ordinary definitions
+and induction proofs already cross. Three of the five failures are the
+dependent-`Case` gap; two are `lia`.
 
 ## Toward CompCert
 

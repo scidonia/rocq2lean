@@ -67,10 +67,20 @@ def ex_ind (A : Type u) (P : A → Prop) (Q : Prop) (f : ∀ x, P x → Q)
     (h : ∃ x, P x) : Q :=
   h.elim f
 
-def iff_mp (A B : Prop) (h : A ↔ B) : A → B :=
+/-- Rocq's `iff` is a definition, `(A -> B) /\ (B -> A)`, not Lean's `Iff`
+structure: proof terms built with `conj` and `proj1`/`proj2` must see the pair. -/
+def iff (A B : Prop) : Prop := (A → B) ∧ (B → A)
+
+inductive SigT (A : Type u) (P : A → Type v) : Type (max u v) where
+  | existT (x : A) (p : P x)
+
+inductive Sig (A : Type u) (P : A → Prop) : Type u where
+  | exist (x : A) (p : P x)
+
+def iff_mp (A B : Prop) (h : iff A B) : A → B :=
   h.1
 
-def iff_mpr (A B : Prop) (h : A ↔ B) : B → A :=
+def iff_mpr (A B : Prop) (h : iff A B) : B → A :=
   h.2
 
 def proj1 (A B : Prop) (h : A ∧ B) : A :=
