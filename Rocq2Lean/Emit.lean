@@ -190,11 +190,22 @@ def registerEliminators (block : String) (params : Array Binder) (types : Array 
     let st ← get
     set { st with eliminators := st.eliminators.insert (block ++ suffix) info }
 
+/-- A declaration whose Rocq name is in the trusted mapping is already provided
+by the Lean prelude; translating it again would give the same name a second,
+incompatible definition. -/
+def mappedTypeBlock (block : String) : Bool :=
+  mappedTypes.any fun (b, _, _) => b == block
+
+def mappedConst (name : String) : Bool :=
+  (mappedConstant name).isSome
+
 def preRegister : Decl → TrM Unit
-  | .constant name .. => TrM.declare name (flatten name)
-  | .inductiveDecl name _ _ _ record params types => do
-      registerInductiveNames name record types
-      registerEliminators name params types
+  | .constant name .. => if mappedConst name then pure () else TrM.declare name (flatten name)
+  | .inductiveDecl name _ _ _ record params types =>
+      if mappedTypeBlock name then pure ()
+      else do
+        registerInductiveNames name record types
+        registerEliminators name params types
   | _ => pure ()
 
 /-! ## Text -/
@@ -614,12 +625,14 @@ def emitDecl (d : Decl) : TrM (Array String) := do
   set { st with current := name }
   match d with
   | .inductiveDecl name loc finite isMutual record params types =>
+      if mappedTypeBlock name then return #[] else
       try
         emitInductive name loc finite isMutual record params types
       catch e =>
         TrM.addMarker s!"{name} ({locText loc}): {e}"
         return #[sectionHeader name loc, untranslatedDoc "inductive" name e loc]
   | .constant name loc form isProp hyps ty body =>
+      if mappedConst name then return #[] else
       try
         emitConstant name loc form isProp hyps ty body
       catch e =>

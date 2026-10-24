@@ -93,8 +93,11 @@ def mappedTypes : List (String × Nat × String) :=
   , ("Corelib.Init.Logic.or", 0, "Or")
   , ("Corelib.Init.Logic.eq", 0, "Eq")
   , ("Corelib.Init.Logic.ex", 0, "Exists")
+  , ("Corelib.Init.Peano.le", 0, "Nat.le")
   , ("Corelib.Init.Datatypes.comparison", 0, "Rocq2Lean.Comparison")
   , ("Corelib.Init.Specif.sumbool", 0, "Rocq2Lean.Sumbool")
+  , ("Corelib.Init.Specif.sigT", 0, "Rocq2Lean.SigT")
+  , ("Corelib.Init.Specif.sig", 0, "Rocq2Lean.Sig")
   ]
 
 /-- Rocq constructors that are rendered as a Lean constructor. The second number
@@ -119,11 +122,15 @@ def mappedCtors : List (String × Nat × Nat × String) :=
   , ("Corelib.Init.Logic.or", 0, 1, "Or.inr")
   , ("Corelib.Init.Logic.eq", 0, 0, "Eq.refl")
   , ("Corelib.Init.Logic.ex", 0, 0, "Exists.intro")
+  , ("Corelib.Init.Peano.le", 0, 0, "Nat.le.refl")
+  , ("Corelib.Init.Peano.le", 0, 1, "Nat.le.step")
   , ("Corelib.Init.Datatypes.comparison", 0, 0, "Rocq2Lean.Comparison.eq")
   , ("Corelib.Init.Datatypes.comparison", 0, 1, "Rocq2Lean.Comparison.lt")
   , ("Corelib.Init.Datatypes.comparison", 0, 2, "Rocq2Lean.Comparison.gt")
   , ("Corelib.Init.Specif.sumbool", 0, 0, "Rocq2Lean.Sumbool.left")
   , ("Corelib.Init.Specif.sumbool", 0, 1, "Rocq2Lean.Sumbool.right")
+  , ("Corelib.Init.Specif.sigT", 0, 0, "Rocq2Lean.SigT.existT")
+  , ("Corelib.Init.Specif.sig", 0, 0, "Rocq2Lean.Sig.exist")
   ]
 
 /-- Mapped constructors whose *pattern* form differs from their name. Rocq's
@@ -138,7 +145,7 @@ order. The Lean side lives in `Rocq2Lean.Prelude` and keeps Rocq's explicit
 binders, which is what makes kernel applications line up. -/
 def mappedConstants : List (String × String) :=
   [ ("Corelib.Init.Logic.not", "Not")
-  , ("Corelib.Init.Logic.iff", "Iff")
+  , ("Corelib.Init.Logic.iff", "Rocq2Lean.iff")
   , ("Corelib.Init.Logic.eq_ind", "Rocq2Lean.eq_ind")
   , ("Corelib.Init.Logic.eq_ind_r", "Rocq2Lean.eq_ind_r")
   , ("Corelib.Init.Logic.eq_rect_r", "Rocq2Lean.eq_rect_r")
@@ -162,6 +169,8 @@ def mappedConstants : List (String × String) :=
   , ("Corelib.Init.Datatypes.nat_rec", "Rocq2Lean.nat_rec")
   , ("Corelib.Init.Nat.add", "Rocq2Lean.add")
   , ("Corelib.Init.Nat.mul", "Rocq2Lean.mul")
+  , ("Stdlib.Arith.PeanoNat.Nat.add", "Rocq2Lean.add")
+  , ("Stdlib.Arith.PeanoNat.Nat.mul", "Rocq2Lean.mul")
   , ("Corelib.Init.Datatypes.andb", "Bool.and")
   , ("Corelib.Init.Datatypes.negb", "Bool.not")
   , ("Corelib.Init.Datatypes.fst", "Prod.fst")
@@ -183,7 +192,17 @@ def mappedConstants : List (String × String) :=
   , ("Corelib.Init.Specif.sumbool_rect", "Rocq2Lean.Sumbool.rec")
   , ("Corelib.Init.Specif.sumbool_ind", "Rocq2Lean.Sumbool.rec")
   , ("Corelib.Init.Specif.sumbool_rec", "Rocq2Lean.Sumbool.rec")
+  , ("Corelib.Init.Specif.sigT_rect", "Rocq2Lean.SigT.rec")
+  , ("Corelib.Init.Specif.sigT_ind", "Rocq2Lean.SigT.rec")
+  , ("Corelib.Init.Specif.sigT_rec", "Rocq2Lean.SigT.rec")
+  , ("Corelib.Init.Specif.sig_rect", "Rocq2Lean.Sig.rec")
+  , ("Corelib.Init.Specif.sig_ind", "Rocq2Lean.Sig.rec")
+  , ("Corelib.Init.Specif.sig_rec", "Rocq2Lean.Sig.rec")
   , ("Corelib.Init.Peano.lt", "Nat.lt")
+  , ("Corelib.Init.Nat.min", "Nat.min")
+  , ("Corelib.Init.Nat.eqb", "Nat.beq")
+  , ("Stdlib.Arith.PeanoNat.Nat.eqb", "Nat.beq")
+  , ("Stdlib.Arith.PeanoNat.Nat.min", "Nat.min")
   , ("Corelib.Init.Wf.well_founded", "WellFounded")
   , ("Corelib.Init.Wf.Fix", "Rocq2Lean.WfFix")
   , ("Corelib.Init.Datatypes.orb", "Bool.or")
